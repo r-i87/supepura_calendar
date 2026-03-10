@@ -94,6 +94,15 @@
 
 <script>
     let editingId = null;
+    async function getEvents(){
+        try{
+            const res = await fetch("https://event-api.t87.workers.dev/");
+            return await res.json();
+        }catch(e){
+            return [];
+        }
+    }
+
     async function editEvent(id) {
         const events = await getEvents();
         const event = events.find(e => e.id === id);
@@ -245,15 +254,6 @@ function loadImages(files) {
 
   const images = files.length ? await loadImages(files) : [];
 
-  async function getEvents(){
-  try{
-    const res = await fetch("https://event-api.t87.workers.dev/");
-    return await res.json();
-  }catch(e){
-    return [];
-  }
-}
-
   const saved = await getEvents();
   const parsed = parseAnnounce(text);
 
@@ -293,8 +293,7 @@ function loadImages(files) {
 
 async function renderEventList() {
   const list = document.getElementById("eventList");
-  const events = await fetch("https://event-api.t87.workers.dev/")
-  .then(r => r.json());
+  const events = await getEvents();
 
   // ✅ ① まず today を定義
   const today = new Date().toISOString().slice(0, 10);
