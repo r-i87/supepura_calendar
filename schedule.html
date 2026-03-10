@@ -124,11 +124,21 @@
 
 let events=[];
 
-try{
-  events = JSON.parse(localStorage.getItem("rawEvents") || "[]");
-}catch(e){
-  events=[];
+async function loadEvents(){
+
+  try{
+    events = await fetch("https://event-api.t87.workers.dev/")
+      .then(r => r.json());
+  }catch(e){
+    events=[];
+  }
+
+  renderSchedule();
 }
+
+loadEvents();
+
+function renderSchedule(){
 
 const container=document.getElementById("schedule");
 
@@ -240,6 +250,7 @@ Object.keys(grouped).sort().forEach(year=>{
   container.appendChild(yearBlock);
 
 });
+}
 
 </script>
 
