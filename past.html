@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>過去イベント一覧</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+  .page-white {
+  max-width: 600px;
+  margin: 20px auto;
+  font-family: sans-serif;
+}
+</style>
+</head>
+<body class="page-white">
+
+<!-- 戻る -->
+<div style="margin-bottom: 16px;">
+  <a href="javascript:history.back()" class="back-link">← 前のページに戻る</a>
+</div>
+
+<h2 style="margin-bottom: 12px;">過去イベント</h2>
+
+<div id="past-events" class="event-list"></div>
+
+<script>
+let events = [];
+try{
+  events = JSON.parse(localStorage.getItem("rawEvents") || "[]");
+}catch(e){
+  events = [];
+}
+const container = document.getElementById("past-events");
+
+// 今日（00:00 기준）
+const today = new Date();
+today.setHours(0,0,0,0);
+
+// 過去イベントだけ抽出
+const pastEvents = events
+  .filter(e => e.date && new Date(e.date) < today)
+  .sort((a, b) => new Date(b.date) - new Date(a.date));
+
+if (pastEvents.length === 0) {
+  container.textContent = "過去のイベントはありません。";
+}
+
+pastEvents.forEach(event => {
+  const item = document.createElement("div");
+  item.className = "event-item";
+
+  const row = document.createElement("div");
+  row.className = "event-row";
+
+  const img = document.createElement("img");
+  img.className = "event-thumb";
+  if (event.images && event.images[0]) {
+    img.src = event.images[0];
+} else {
+    img.style.display = "none";
+}
+  img.onerror = () => {
+    img.style.display = "none";
+};
+
+  const info = document.createElement("div");
+
+  const title = document.createElement("h3");
+  title.textContent = event.title;
+
+  const date = document.createElement("div");
+  date.textContent = event.date;
+  date.style.fontSize = "13px";
+  date.style.color = "#666";
+
+  info.appendChild(title);
+  info.appendChild(date);
+
+  row.appendChild(info);
+  row.appendChild(img);
+  item.appendChild(row);
+
+
+  container.appendChild(item);
+});
+
+</script>
+
+</body>
+</html>

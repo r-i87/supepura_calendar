@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>イベント詳細</title>
+  <link rel="stylesheet" href="style.css?v=20260309">
+  <style>
+  .page-white {
+    max-width: 600px;
+    margin: 20px auto;
+    font-family: sans-serif;
+    line-height: 1.6;
+  }
+
+  h1 {
+    font-size: 22px;
+    margin-bottom: 8px;
+  }
+
+  .meta {
+    color: #555;
+    margin-bottom: 12px;
+    font-size: 16px;     /* ← 全体を少し大きく */
+    line-height: 1.8;
+  }
+  .meta strong {
+    font-weight: 600;
+  }
+
+  .section {
+    margin-top: 16px;
+  }
+
+  .label {
+    font-weight: bold;
+    margin-bottom: 4px;
+  }
+
+  .box {
+    background: #f6f6f6;
+    padding: 8px 10px 6px;
+    border-radius: 6px;
+
+    word-break: break-all;
+  }
+
+  .box a {
+    display:block;
+    margin-top:2px;
+    margin-bottom:0;
+    text-align:left;
+    font-size:14px;
+  }
+
+  .back {
+    margin-top: 20px;
+    display: inline-block;
+    text-decoration: none;
+    color: #007aff;
+  }
+
+  .image-slider {
+    display: flex;
+    overflow-x: auto;
+    gap: 8px;
+    scroll-snap-type: x mandatory;
+    margin-bottom: 12px;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  .image-slider img {
+    width: 100%;
+    height: 400px;          /* ← 高さを固定 */
+    flex-shrink: 0;
+    border-radius: 8px;
+    object-fit: contain;   /* ← 比率を守る（重要） */
+    background: #ffffff;      /* 黒帯が出ても読めるように */
+    scroll-snap-align: start;
+  }
+
+  .dots {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #ccc;
+}
+
+.dot.active {
+  background: #333;
+}
+
+.event-date {
+  font-size: 17px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.event-venue {
+  font-size: 15px;
+  color: #555;
+}
+.ticket-sale{
+  text-align:left;
+  font-size:14px;
+  margin-bottom:1px;
+}
+</style>
+</head>
+<body class="page-white">
+
+<div class="image-slider" id="imageSlider"></div>
+<div class="dots" id="imageDots"></div>
+
+<div id="content">読み込み中…</div>
+
+<script>
+  // ① URLから id を取得
+  const params = new URLSearchParams(location.search);
+  const eventId = Number(params.get("id"));
+
+  // ② localStorage からデータ取得
+  let events = [];
+
+try{
+  events = JSON.parse(localStorage.getItem("rawEvents") || "[]");
+}catch(e){
+  events = [];
+}
+
+  // ③ 該当イベントを探す
+  const event = events.find(e => e.id === eventId);
+
+  const content = document.getElementById("content");
+
+  function extractTicketInfo(text = "") {
+  const saleMatch = text.match(/🎫(.+?)より販売開始/);
+  const linkMatch = text.match(/(https?:\/\/[^\s]+)/);
+
+  return {
+    sale: saleMatch ? saleMatch[1].trim() : null,
+    link: linkMatch ? linkMatch[1] : null
+  };
+}
+
+  if (!event) {
+  content.textContent = "イベントが見つかりませんでした。";
+} else {
+
+  // ① 画像を先に表示
+  if (event.images && event.images.length > 0) {
+  const slider = document.getElementById("imageSlider");
+  const dots = document.getElementById("imageDots");
+
+  slider.innerHTML = event.images
+    .map(src => `<img src="${src}">`)
+    .join("");
+
+  dots.innerHTML = event.images
+    .map((_, i) =>
+      `<div class="dot ${i === 0 ? "active" : ""}"></div>`
+    )
+    .join("");
+
+  slider.addEventListener("scroll", () => {
+    const index = Math.round(
+        slider.scrollLeft / slider.clientWidth
+      ) || 0;
+
+    document.querySelectorAll(".dot").forEach((dot, i) => {
+      dot.classList.toggle("active", i === index);
+    });
+  });
+}
+const ticket = extractTicketInfo(event.rawText);
+
+  // ② テキスト情報
+  content.innerHTML = `
+    <h1>${event.title}</h1>
+
+    <div class="meta">
+      <div class="event-date">📅 ${event.date}</div>
+      <div class="event-venue">📍 ${event.venue}</div>
+    </div>
+
+    ${event.openLine ? `
+      <div class="section">
+        <div class="label">OPEN / START</div>
+        <div class="box">${event.openLine}</div>
+      </div>
+    ` : ""}
+
+    ${event.stageTime ? `
+      <div class="section">
+        <div class="label">🎤 ライブ</div>
+        <div class="box">${event.stageTime}</div>
+      </div>
+    ` : ""}
+
+    ${event.photoTime ? `
+      <div class="section">
+        <div class="label">📸 特典会</div>
+        <div class="box">${event.photoTime}</div>
+      </div>
+    ` : ""}
+
+    ${event.infoText ? `
+      <div class="section">
+        <div class="label">詳細情報</div>
+        <div class="box">${event.infoText}</div>
+      </div>
+    ` : ""}
+
+    ${ticket.sale || ticket.link ? `
+  <div class="section">
+    <div class="label">🎫 チケット</div>
+    <div class="box">
+      ${ticket.sale ? `<div class="ticket-sale">販売開始：${ticket.sale}</div>` : ""}
+      ${ticket.link ? `<a href="${ticket.link}" target="_blank">${ticket.link}</a>` : ""}
+    </div>
+  </div>
+` : ""}
+
+    <a href="index.html" class="back">← カレンダーに戻る</a>
+  `;
+}
+</script>
+
+</body>
+</html>
