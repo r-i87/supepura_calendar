@@ -94,8 +94,8 @@
 
 <script>
     let editingId = null;
-    function editEvent(id) {
-        const events = JSON.parse(localStorage.getItem("rawEvents") || "[]");
+    async function editEvent(id) {
+        const events = await getEvents();
         const event = events.find(e => e.id === id);
         if (!event) return;
         
@@ -245,15 +245,16 @@ function loadImages(files) {
 
   const images = files.length ? await loadImages(files) : [];
 
-  function getEvents(){
-    try{
-        return JSON.parse(localStorage.getItem("rawEvents") || "[]");
-    }catch(e){
-        return [];
-    }
+  async function getEvents(){
+  try{
+    const res = await fetch("https://event-api.t87.workers.dev/");
+    return await res.json();
+  }catch(e){
+    return [];
+  }
 }
 
-  const saved = getEvents();
+  const saved = await getEvents();
   const parsed = parseAnnounce(text);
 
   if (editingId) {
@@ -272,7 +273,17 @@ function loadImages(files) {
   });
 }
 
-  localStorage.setItem("rawEvents", JSON.stringify(saved));
+  await fetch("https://event-api.t87.workers.dev/", {
+
+  method: "POST",
+
+  headers: {
+    "Content-Type": "application/json"
+  },
+
+  body: JSON.stringify(saved)
+
+});
 
   document.getElementById("announceText").value = "";
   document.getElementById("imageInput").value = "";
@@ -280,9 +291,10 @@ function loadImages(files) {
   renderEventList();
 });
 
-function renderEventList() {
+async function renderEventList() {
   const list = document.getElementById("eventList");
-  const events = JSON.parse(localStorage.getItem("rawEvents") || "[]");
+  const events = await fetch("https://event-api.t87.workers.dev/")
+  .then(r => r.json());
 
   // ✅ ① まず today を定義
   const today = new Date().toISOString().slice(0, 10);
@@ -332,20 +344,29 @@ function renderEventList() {
   });
 }
 
-function deleteEvent(id) {
+async function deleteEvent(id) {
   const ok = confirm("本当にこのイベントを削除しますか？");
   if (!ok) return;
 
-  let events = JSON.parse(localStorage.getItem("rawEvents") || "[]");
+  let events = await fetch("https://event-api.t87.workers.dev/")
+  .then(r => r.json());
+
   events = events.filter(e => e.id !== id);
 
-  localStorage.setItem("rawEvents", JSON.stringify(events));
-  renderEventList();
+  await fetch("https://event-api.t87.workers.dev/",{
+    method:"POST",
+    headers:{ "Content-Type":"application/json"},
+    body:JSON.stringify(events)
+  });
+
+  renderEventList().catch(console.error);
 }
-renderEventList();
+
+renderEventList().catch(console.error);
 
 document.getElementById("updateBtn").addEventListener("click", async () => {
-  const events = JSON.parse(localStorage.getItem("rawEvents") || "[]");
+  const events = await fetch("https://event-api.t87.workers.dev/")
+  .then(r => r.json());
   const index = events.findIndex(e => e.id === editingId);
   if (index === -1) return;
 
@@ -364,11 +385,15 @@ document.getElementById("updateBtn").addEventListener("click", async () => {
     images: newImages.slice(0, 2)
   };
 
-  localStorage.setItem("rawEvents", JSON.stringify(events));
+  await fetch("https://event-api.t87.workers.dev/",{
+ method:"POST",
+ headers:{ "Content-Type":"application/json"},
+ body:JSON.stringify(events)
+});
   editingId = null;
 
   document.getElementById("editImages").value = "";
-  renderEventList();
+  renderEventList().catch(console.error);
   alert("更新しました");
 });
 
