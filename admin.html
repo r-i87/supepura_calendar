@@ -105,7 +105,7 @@
 
     async function editEvent(id) {
         const events = await getEvents();
-        const event = events.find(e => e.id === id);
+        const event = events.find(e => String(e.id) === String(id));
         if (!event) return;
         
         editingId = id;
@@ -392,6 +392,8 @@ document.getElementById("updateBtn").addEventListener("click", async () => {
   editingId = null;
 
   document.getElementById("editImages").value = "";
+  document.getElementById("editForm").style.display = "none";
+  window.scrollTo({ top: 0, behavior: "smooth" });
   renderEventList().catch(console.error);
   alert("更新しました");
 });
