@@ -136,8 +136,28 @@ async function loadEvent(){
   }catch(e){
     events = [];
   }
-
+  events.sort((a,b)=>a.date.localeCompare(b.date));
   showEvent();
+}
+
+function extractTicketInfo(text){
+
+  if(!text) return {};
+
+  const result = {};
+
+  const saleMatch = text.match(/販売開始[:：]?\s*([^\n]+)/);
+  if(saleMatch){
+    result.sale = saleMatch[1];
+  }
+
+  const linkMatch = text.match(/https?:\/\/[^\s]+/);
+  if(linkMatch){
+    result.link = linkMatch[0];
+  }
+
+  return result;
+
 }
 
 function showEvent(){
