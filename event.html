@@ -124,8 +124,7 @@
 <script>
   // ① URLから id を取得
   const params = new URLSearchParams(location.search);
-  const eventId = Number(params.get("id"));
-
+  const eventId = params.get("id");
   // ② localStorage からデータ取得
   let events = [];
 
@@ -143,7 +142,7 @@ async function loadEvent(){
 
 function showEvent(){
 
-  const event = events.find(e => e.id === eventId);
+  const event = events.find(e => String(e.id) === eventId);
   const content = document.getElementById("content");
 
   if (!event) {
