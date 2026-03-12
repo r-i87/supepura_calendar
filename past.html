@@ -30,7 +30,7 @@ let events = [];
 async function loadPastEvents(){
 
   try{
-    events = await fetch("https://event-api.t87.workers.dev/")
+    events = await fetch("https://event-api.t87.workers.dev/events")
       .then(r => r.json());
   }catch(e){
     events = [];
