@@ -155,6 +155,7 @@ top:12px;
 const API="https://event-api.t87.workers.dev";
 
 let editingId=null;
+let editingImages=[];
 
 async function getEvents(){
 
@@ -376,6 +377,7 @@ const event=events.find(e=>String(e.id)===String(id));
 if(!event)return;
 
 editingId=id;
+editingImages=event.images || [];
 
 document.getElementById("editForm").style.display="block";
 
@@ -420,7 +422,9 @@ if(index===-1)return;
 
 const files=editImages.files;
 
-const newImages=files.length?await loadImages(files):events[index].images;
+const newImages=files.length
+? await loadImages(files)
+: editingImages;
 
 events[index]={
 
@@ -459,6 +463,7 @@ body:JSON.stringify(events[index])
 });
 
 editingId=null;
+editingImages=[];
 
 editImages.value="";
 
