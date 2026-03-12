@@ -67,18 +67,25 @@
 <script>
 let currentDate = new Date();
 const calendar = document.getElementById("calendar");
-let events = [];
 
 async function loadEvents(){
   try{
-    events = await fetch("https://event-api.t87.workers.dev/")
+    events = await fetch("https://event-api.t87.workers.dev/events")
       .then(r => r.json());
+    eventsByDate = {};
+    events.forEach(e=>{
+        if(!eventsByDate[e.date]) eventsByDate[e.date]=[];
+        eventsByDate[e.date].push(e);
+    });
   }catch(e){
     events = [];
   }
   renderCalendar();
   renderTodayEvent();
 }
+
+let events = [];
+let eventsByDate = {};
 
 loadEvents();
 
@@ -154,7 +161,7 @@ const todayStr = today.getFullYear() + "-" +
     number.textContent = day;
     dayDiv.appendChild(number);
 
-    const dayEvents = events.filter(e => e.date === dateStr);
+    const dayEvents = eventsByDate[dateStr] || [];
     
     dayEvents.slice(0,2).forEach(event => {
 
@@ -164,6 +171,7 @@ const todayStr = today.getFullYear() + "-" +
   // ▼ 画像がある場合
   if (event.images && event.images.length > 0) {
     const img = document.createElement("img");
+    img.loading="lazy";
     img.src = event.images[0];
     wrapper.appendChild(img);
   }
