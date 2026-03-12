@@ -47,6 +47,11 @@ border-radius:10px;
 padding:12px;
 margin-bottom:12px;
 box-shadow:0 2px 6px rgba(0,0,0,0.08);
+
+display:flex;
+justify-content:space-between;
+align-items:center;
+gap:12px;
 }
 
 .card-title{
@@ -71,6 +76,14 @@ padding:4px 8px;
 border:none;
 border-radius:6px;
 cursor:pointer;
+}
+
+.event-thumb{
+width:90px;
+height:90px;
+object-fit:cover;
+border-radius:8px;
+flex-shrink:0;
 }
 
 </style>
@@ -275,6 +288,19 @@ const openLineIndex=lines.findIndex(line=>
 );
 
 if(openLineIndex!==-1)result.openLine=lines[openLineIndex].trim();
+
+let infoLines=[];
+for(let i=openLineIndex+1;i<lines.length;i++){
+
+const line=lines[i].trim();
+
+if(line==="") break;
+
+infoLines.push(line);
+
+}
+
+result.infoText=infoLines.join("\n");
 
 const stageMatch=text.match(/🎤\s*([^\n]+)/);
 
