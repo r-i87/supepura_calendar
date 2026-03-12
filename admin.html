@@ -493,12 +493,10 @@ return;
 
 const today=new Date().toISOString().slice(0,10);
 
-events.sort((a,b)=>(a.date||"").localeCompare(b.date||""));
-
 const upcoming=events.filter(e=>e.date>=today);
 
 events
-.filter(e=>e.date >= today)
+.filter(e=>e.date && e.date >= today)
 .sort((a,b)=>a.date.localeCompare(b.date))
 .forEach(event=>{
 
