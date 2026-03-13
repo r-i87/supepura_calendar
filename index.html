@@ -266,6 +266,12 @@ calendar.addEventListener("touchstart", (e) => {
 });
 
 calendar.addEventListener("touchend", (e) => {
+
+  // ✅ ピンチ拡大中は月移動させない
+  if (window.visualViewport && window.visualViewport.scale > 1) {
+    return;
+  }
+
   let endX = e.changedTouches[0].clientX;
   let diff = endX - startX;
 
