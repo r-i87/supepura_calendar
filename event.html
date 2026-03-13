@@ -130,12 +130,25 @@
 
 async function loadEvent(){
 
-  try{
-    events = await fetch("https://event-api.t87.workers.dev/events")
-      .then(r => r.json());
-  }catch(e){
-    events = [];
+  // ⭐ 先にキャッシュ表示（爆速）
+  const cache = localStorage.getItem("eventsCache");
+  if(cache){
+    try{
+      events = JSON.parse(cache);
+      showEvent();
+    }catch(e){}
   }
+
+  // ⭐ あとから最新取得
+  try{
+    events = await fetch("https://event-api.t87.workers.dev/events",{
+      cache:"force-cache"
+    }).then(r => r.json());
+
+    localStorage.setItem("eventsCache", JSON.stringify(events));
+
+  }catch(e){}
+
   showEvent();
 }
 
@@ -180,8 +193,10 @@ function showEvent(){
     const dots = document.getElementById("imageDots");
 
     slider.innerHTML = event.images
-      .map(src => `<img loading="lazy" src="${src}">`)
-      .join("");
+    .map((src,i) =>
+    `<img ${i===0 ? 'loading="eager"' : 'loading="lazy"'} src="${src}">`
+  )
+  .join("");
 
     dots.innerHTML = event.images
       .map((_, i) =>
