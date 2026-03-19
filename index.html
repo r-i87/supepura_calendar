@@ -92,9 +92,15 @@ async function loadEvents(){
       localStorage.setItem("eventsCache", JSON.stringify(events));
     eventsByDate = {};
     events.forEach(e=>{
-        if(!eventsByDate[e.date]) eventsByDate[e.date]=[];
-        eventsByDate[e.date].push(e);
-    });
+
+    // ✅ 日付が正しい形式じゃない場合はスキップ
+    if(!e.date || !/^\d{4}-\d{2}-\d{2}$/.test(e.date)){
+        return;
+    }
+
+    if(!eventsByDate[e.date]) eventsByDate[e.date]=[];
+    eventsByDate[e.date].push(e);
+  });
   }catch(e){
     events = [];
   }
@@ -180,7 +186,7 @@ const todayStr = today.getFullYear() + "-" +
     number.textContent = day;
     dayDiv.appendChild(number);
 
-    const dayEvents = eventsByDate[dateStr] || [];
+    const dayEvents = Array.isArray(eventsByDate[dateStr]) ? eventsByDate[dateStr] : [];
     
     // 🎤ライブ時間で並び替え（早い順）
     dayEvents.sort((a,b)=>{
